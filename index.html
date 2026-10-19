@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Futebol de Botão Arena</title>
   <style>
     * {
@@ -33,21 +33,20 @@
       height: 100vh;
       height: 100dvh;
       max-width: 1280px;
-      padding: 10px;
+      padding: 8px;
       position: relative;
     }
 
-    /* Placar de Jogo */
     #score-board {
       display: flex;
       justify-content: space-between;
       align-items: center;
       width: 100%;
       background: linear-gradient(180deg, #1f1f2e 0%, #111118 100%);
-      border: 2px solid #33334d;
-      border-radius: 12px;
-      padding: 6px 16px;
-      margin-bottom: 6px;
+      border: 1px solid #33334d;
+      border-radius: 8px;
+      padding: 4px 12px;
+      margin-bottom: 4px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
       flex-shrink: 0;
     }
@@ -55,19 +54,19 @@
     .team-card {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 1.1rem;
+      gap: 8px;
+      font-size: 0.95rem;
       font-weight: bold;
     }
 
     .score-num {
-      font-size: 1.8rem;
+      font-size: 1.4rem;
       background-color: #09090d;
-      padding: 2px 14px;
+      padding: 1px 10px;
       border-radius: 6px;
       color: #ffd700;
       border: 1px solid #444;
-      min-width: 45px;
+      min-width: 36px;
       text-align: center;
     }
 
@@ -76,24 +75,24 @@
     }
 
     #timer {
-      font-size: 1.4rem;
+      font-size: 1.1rem;
       font-weight: bold;
       font-family: monospace;
       color: #00ffcc;
+      line-height: 1;
     }
 
     #turn-indicator {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       color: #66fcf1;
       margin-top: 2px;
       font-weight: 600;
     }
 
-    /* Painel de Controles Superiores */
     #controls-bar {
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 6px;
+      margin-bottom: 4px;
       width: 100%;
       justify-content: center;
       align-items: center;
@@ -105,10 +104,10 @@
       background: linear-gradient(180deg, #3a3d52 0%, #222433 100%);
       color: #ffffff;
       border: 1px solid #555875;
-      padding: 6px 12px;
+      padding: 4px 8px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       font-weight: 600;
       transition: all 0.2s ease;
     }
@@ -123,51 +122,27 @@
       border-color: #ff4444;
     }
 
-    .btn-danger:hover {
-      background: linear-gradient(180deg, #a50000 0%, #660000 100%);
-    }
-
-    /* Estilização Destacada para Seletores de Tática */
     .tactics-group {
       margin-left: auto;
       display: flex;
-      gap: 12px;
+      gap: 8px;
       align-items: center;
       background: rgba(30, 30, 48, 0.8);
-      padding: 4px 12px;
-      border-radius: 8px;
+      padding: 2px 8px;
+      border-radius: 6px;
       border: 1px solid #4a4d66;
-    }
-
-    @media (max-width: 600px) {
-      .tactics-group {
-        margin-left: 0;
-      }
-      .team-card {
-        font-size: 0.9rem;
-        gap: 6px;
-      }
-      .score-num {
-        font-size: 1.3rem;
-        padding: 2px 8px;
-        min-width: 35px;
-      }
-      #timer {
-        font-size: 1.1rem;
-      }
     }
 
     .tactics-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
     .tactics-label {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
 
     .select-tactics {
@@ -175,9 +150,10 @@
       color: #66fcf1;
       font-weight: bold;
       border: 1px solid #66fcf1;
-      padding: 5px 10px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 4px;
       cursor: pointer;
+      font-size: 0.75rem;
       outline: none;
     }
 
@@ -186,7 +162,6 @@
       color: #ffffff;
     }
 
-    /* Container do Canvas com Enquadramento Dinâmico */
     #canvas-container {
       flex: 1;
       width: 100%;
@@ -209,7 +184,6 @@
       touch-action: none;
     }
 
-    /* Menus e Modais Overlay */
     .menu-modal {
       position: absolute;
       top: 0;
@@ -222,227 +196,53 @@
       justify-content: center;
       align-items: center;
       z-index: 100;
-      border-radius: 12px;
-      padding: 10px;
-    }
-
-    #game-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100vw;
-      height: 100vh;
-      max-width: 1280px;
-      max-height: 850px;
-      padding: 10px;
-      position: relative;
-    }
-
-    /* Placar de Jogo */
-    #score-board {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      background: linear-gradient(180deg, #1f1f2e 0%, #111118 100%);
-      border: 2px solid #33334d;
-      border-radius: 12px;
-      padding: 8px 20px;
-      margin-bottom: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    }
-
-    .team-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
-
-    .score-num {
-      font-size: 1.8rem;
-      background-color: #09090d;
-      padding: 2px 14px;
-      border-radius: 6px;
-      color: #ffd700;
-      border: 1px solid #444;
-      min-width: 45px;
-      text-align: center;
-    }
-
-    #match-info {
-      text-align: center;
-    }
-
-    #timer {
-      font-size: 1.4rem;
-      font-weight: bold;
-      font-family: monospace;
-      color: #00ffcc;
-    }
-
-    #turn-indicator {
-      font-size: 0.85rem;
-      color: #66fcf1;
-      margin-top: 2px;
-      font-weight: 600;
-    }
-
-    /* Painel de Controles Superiores */
-    #controls-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      width: 100%;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      background: linear-gradient(180deg, #3a3d52 0%, #222433 100%);
-      color: #ffffff;
-      border: 1px solid #555875;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .btn:hover {
-      background: linear-gradient(180deg, #4a4e69 0%, #2d3045 100%);
-      border-color: #66fcf1;
-    }
-
-    .btn-danger {
-      background: linear-gradient(180deg, #8b0000 0%, #4a0000 100%);
-      border-color: #ff4444;
-    }
-
-    .btn-danger:hover {
-      background: linear-gradient(180deg, #a50000 0%, #660000 100%);
-    }
-
-    /* Estilização Destacada para Seletores de Tática */
-    .tactics-group {
-      margin-left: auto;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      background: rgba(30, 30, 48, 0.8);
-      padding: 4px 12px;
       border-radius: 8px;
-      border: 1px solid #4a4d66;
-    }
-
-    .tactics-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .tactics-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-    }
-
-    .select-tactics {
-      background-color: #1a1a28;
-      color: #66fcf1;
-      font-weight: bold;
-      border: 1px solid #66fcf1;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      outline: none;
-    }
-
-    .select-tactics option {
-      background-color: #12121c;
-      color: #ffffff;
-    }
-
-    /* Container do Canvas */
-    #canvas-container {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
-    canvas {
-      background-color: #121212;
-      border-radius: 8px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-      max-width: 100%;
-      max-height: 100%;
-      touch-action: none;
-    }
-
-    /* Menus e Modais Overlay */
-    .menu-modal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(10, 10, 16, 0.88);
-      backdrop-filter: blur(6px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      border-radius: 12px;
+      padding: 10px;
     }
 
     .menu-card {
       background: #1e1e2d;
       border: 2px solid #3d3d5c;
       border-radius: 12px;
-      padding: 30px;
-      width: 90%;
-      max-width: 480px;
+      padding: 20px;
+      width: 95%;
+      max-width: 440px;
       text-align: center;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      max-height: 95vh;
+      overflow-y: auto;
     }
 
     .menu-card h1 {
-      font-size: 2rem;
+      font-size: 1.6rem;
       color: #66fcf1;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       text-transform: uppercase;
       letter-spacing: 2px;
     }
 
     .menu-card h2 {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       color: #ffd700;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     .menu-card p {
-      font-size: 0.95rem;
-      line-height: 1.5;
+      font-size: 0.85rem;
+      line-height: 1.4;
       color: #ccc;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .menu-btn-group {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     .menu-btn {
-      padding: 12px;
-      font-size: 1rem;
+      padding: 10px;
+      font-size: 0.9rem;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
@@ -452,31 +252,22 @@
       transition: transform 0.1s, filter 0.2s;
     }
 
-    .menu-btn:hover {
-      filter: brightness(1.15);
-      transform: translateY(-2px);
-    }
-
     .menu-btn-secondary {
       background: #2c2c3e;
       color: #fff;
       border: 1px solid #4d4d6e;
     }
 
-    .menu-btn-secondary:hover {
-      background: #3a3a52;
-    }
-
     .form-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       text-align: left;
     }
 
     .form-row label {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: #ddd;
     }
 
@@ -484,12 +275,11 @@
       background: #111118;
       color: #fff;
       border: 1px solid #444;
-      padding: 6px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
 
-    /* Banner de Gol */
     #goal-banner {
       position: absolute;
       top: 40%;
@@ -497,12 +287,12 @@
       transform: translate(-50%, -50%) scale(0);
       background: rgba(255, 215, 0, 0.95);
       color: #000;
-      padding: 20px 50px;
-      border-radius: 20px;
-      font-size: 3.5rem;
+      padding: 15px 35px;
+      border-radius: 15px;
+      font-size: 2.5rem;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       pointer-events: none;
@@ -513,25 +303,116 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    /* Overlay do Replay */
     #replay-indicator {
       position: absolute;
-      top: 20px;
-      right: 25px;
+      top: 15px;
+      right: 15px;
       background-color: rgba(220, 38, 38, 0.85);
       color: white;
       font-weight: bold;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 1rem;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
       letter-spacing: 2px;
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
       animation: pulse 1s infinite alternate;
       z-index: 95;
       pointer-events: none;
+    }
+
+    /* AVISO DE ROTACIONAR PARA DEITADO NO CELULAR */
+    #rotate-device-prompt {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0d0d15;
+      z-index: 999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #rotate-device-prompt svg {
+      width: 80px;
+      height: 80px;
+      fill: #66fcf1;
+      margin-bottom: 20px;
+      animation: rotateIcon 2s infinite ease-in-out;
+    }
+
+    @keyframes rotateIcon {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* REGRA MOBILE LANDSCAPE: Otimização extrema para celulares na horizontal */
+    @media screen and (max-width: 900px) and (orientation: portrait) {
+      #rotate-device-prompt {
+        display: flex;
+      }
+    }
+
+    @media screen and (max-width: 900px) and (orientation: landscape) {
+      #game-container {
+        padding: 2px;
+      }
+
+      #score-board {
+        padding: 2px 8px;
+        margin-bottom: 2px;
+      }
+
+      .team-card {
+        font-size: 0.75rem;
+        gap: 4px;
+      }
+
+      .score-num {
+        font-size: 1rem;
+        padding: 0px 6px;
+        min-width: 28px;
+      }
+
+      #timer {
+        font-size: 0.9rem;
+      }
+
+      #turn-indicator {
+        font-size: 0.65rem;
+      }
+
+      #controls-bar {
+        margin-bottom: 2px;
+        gap: 4px;
+      }
+
+      .btn {
+        padding: 2px 6px;
+        font-size: 0.68rem;
+      }
+
+      .tactics-group {
+        padding: 1px 4px;
+        gap: 4px;
+      }
+
+      .tactics-label {
+        font-size: 0.65rem;
+      }
+
+      .select-tactics {
+        padding: 1px 4px;
+        font-size: 0.65rem;
+      }
     }
 
     @keyframes pulse {
@@ -541,8 +422,17 @@
   </style>
 </head>
 <body>
+  <!-- Aviso de Modo Deitado para Celulares -->
+  <div id="rotate-device-prompt">
+    <svg viewBox="0 0 24 24">
+      <path d="M17,1.01L7,1C5.9,1,5,1.9,5,3v18c0,1.1,0.9,2,2,2h10c1.1,0,2-0.9,2-2V3C19,1.9,18.1,1.01,17,1.01z M17,19H7V5h10V19z"/>
+    </svg>
+    <h2 style="color: #66fcf1; margin-bottom: 10px;">Vire o Celular</h2>
+    <p style="color: #ccc; font-size: 0.9rem;">Para uma melhor experiência no celular, deite o aparelho de lado (Modo Paisagem).</p>
+  </div>
+
   <div id="game-container">
-    <!-- Placar Superior -->
+    <!-- Placar Superior Compacto -->
     <div id="score-board">
       <div class="team-card">
         <span id="home-name-display">Brasil</span>
@@ -562,13 +452,13 @@
 
     <!-- Barra de Controles Globais -->
     <div id="controls-bar">
-      <button id="btn-pause" class="btn">Pausar Jogo</button>
-      <button id="btn-sound" class="btn">Som: LIGADO</button>
-      <button id="btn-cancel" class="btn btn-danger">Cancelar Seleção</button>
+      <button id="btn-pause" class="btn">Pausar</button>
+      <button id="btn-sound" class="btn">Som: ON</button>
+      <button id="btn-cancel" class="btn btn-danger">Cancelar</button>
       
       <div class="tactics-group">
         <div class="tactics-item">
-          <label for="select-tactics-home" class="tactics-label">Tática Brasil:</label>
+          <label for="select-tactics-home" class="tactics-label">Tática Bra:</label>
           <select id="select-tactics-home" class="select-tactics">
             <option value="4-3-3" selected>4-3-3</option>
             <option value="4-4-2">4-4-2</option>
@@ -602,7 +492,7 @@
           <div class="menu-btn-group">
             <button id="menu-start-pve" class="menu-btn">1 Jogador vs IA</button>
             <button id="menu-start-pvp" class="menu-btn menu-btn-secondary">2 Jogadores (Local)</button>
-            <button id="menu-open-settings" class="menu-btn menu-btn-secondary">Configurações da Partida</button>
+            <button id="menu-open-settings" class="menu-btn menu-btn-secondary">Configurações</button>
             <button id="menu-open-how-to" class="menu-btn menu-btn-secondary">Como Jogar</button>
           </div>
         </div>
@@ -641,7 +531,7 @@
             <input type="text" id="setting-away-name" value="Argentina" maxlength="12" />
           </div>
 
-          <div class="menu-btn-group" style="margin-top: 20px;">
+          <div class="menu-btn-group" style="margin-top: 15px;">
             <button id="settings-save-btn" class="menu-btn">Salvar e Voltar</button>
           </div>
         </div>
@@ -653,7 +543,7 @@
           <h2>Como Jogar</h2>
           <p style="text-align: left;">
             1. <strong>Clique/Toque</strong> em um botão da sua equipe.<br/>
-            2. <strong>Arraste para trás</strong> para ajustar a força e o ângulo da mira.<br/>
+            2. <strong>Arraste para trás</strong> para ajustar a força e a direção da mira.<br/>
             3. <strong>Solte</strong> para disparar o botão!<br/>
             4. Cada time tem direito a <strong>1 jogada por turno</strong>.<br/>
             5. Vença quem marcar mais gols no tempo limite!
@@ -681,7 +571,6 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Dimensões virtuais do campo de futebol
     const FIELD_WIDTH = 1200;
     const FIELD_HEIGHT = 800;
 
@@ -706,7 +595,7 @@
     const FRICTION = 0.982;
     const BALL_FRICTION = 0.986;
     const RESTITUTION = 0.85;
-    const STOP_THRESHOLD = 0.15; // Ajustado para parar com mais facilidade e evitar micro-movimentos infinitos
+    const STOP_THRESHOLD = 0.15;
     const SUBSTEPS = 8;
 
     const MIN_DRAG_DIST = 15;
@@ -725,10 +614,9 @@
     };
 
     let currentState = GAME_STATES.MENU;
-    let timerStarted = false; // Flag para controlar se o cronômetro começou a rolar
-    let motionTimer = 0; // Contador de segurança contra travamentos
+    let timerStarted = false;
+    let motionTimer = 0;
 
-    // Buffer do Replay (Guarda as posições dos últimos 240 frames ~ 4 segundos)
     const REPLAY_MAX_FRAMES = 240;
     let replayBuffer = [];
     let replayCurrentFrame = 0;
@@ -751,7 +639,6 @@
 
     let soundEnabled = true;
 
-    // Entidades
     let ball = {
       x: PITCH_X + PITCH_W / 2,
       y: PITCH_Y + PITCH_H / 2,
@@ -875,7 +762,6 @@
       const centerX = PITCH_X + PITCH_W / 2;
       const centerY = PITCH_Y + PITCH_H / 2;
 
-      // Time Casa (Brasil)
       TACTICS_CONFIG[homeTactic].forEach((pos, index) => {
         const isGK = (pos.role === 'gk');
         players.push({
@@ -897,7 +783,6 @@
         });
       });
 
-      // Time Visitante (Argentina)
       TACTICS_CONFIG[awayTactic].forEach((pos, index) => {
         const isGK = (pos.role === 'gk');
         players.push({
@@ -1084,41 +969,34 @@
           const gx = p.x - p.width / 2;
           const gy = p.y - p.height / 2;
 
-          // Preenchimento com cor sólida vívida
           ctx.fillStyle = p.colorPrimary;
           ctx.fillRect(gx, gy, p.width, p.height);
 
-          // Borda reforçada e contraste
           ctx.strokeStyle = p.colorSecondary;
           ctx.lineWidth = 4;
           ctx.strokeRect(gx, gy, p.width, p.height);
 
-          // Número do Goleiro
           ctx.fillStyle = p.textColor;
           ctx.font = 'bold 14px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('1', p.x, p.y);
         } else {
-          // Preenchimento do botão
           ctx.fillStyle = p.colorPrimary;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fill();
 
-          // Borda dupla/reforçada para destacar no gramado
           ctx.strokeStyle = p.colorSecondary;
           ctx.lineWidth = 4;
           ctx.stroke();
 
-          // Anel interno para efeito de brilho/botão tridimensional
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius - 4, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Número do jogador em negrito com alto contraste
           ctx.fillStyle = p.textColor;
           ctx.font = 'bold 14px sans-serif';
           ctx.textAlign = 'center';
@@ -1126,7 +1004,6 @@
           ctx.fillText(p.number, p.x, p.y);
         }
 
-        // Destaque vívido quando o botão for selecionado
         if (p.id === selectedPlayerId) {
           ctx.strokeStyle = '#00ffff';
           ctx.lineWidth = 4;
@@ -1231,7 +1108,6 @@
         players.forEach(p => checkBoundaries(p, false));
       }
 
-      // Zera o movimento quando a velocidade é menor que o limite (evita que a IA ou física fiquem presas em cálculo infinito)
       if (Math.hypot(ball.vx, ball.vy) < STOP_THRESHOLD) {
         ball.vx = 0;
         ball.vy = 0;
@@ -1251,7 +1127,6 @@
           return;
         }
 
-        // Se passar mais de 3 segundos em movimento ou se tudo parou, força a troca de turno para destravar totalmente
         if (isEverythingStopped() || motionTimer > 180) {
           motionTimer = 0;
           stopAllMotion();
@@ -1346,8 +1221,12 @@
       document.getElementById('home-score').textContent = homeScore;
       document.getElementById('away-score').textContent = awayScore;
 
+      // O time que tomou o gol recomeça com a bola
+      currentTurnTeam = (scoringTeam === 'home') ? 'away' : 'home';
+
       playSound('goal');
       currentState = GAME_STATES.GOAL_CELEBRATION;
+      updateTacticsUI();
 
       const banner = document.getElementById('goal-banner');
       banner.classList.add('show');
@@ -1397,7 +1276,7 @@
     function finishGoalAndReset() {
       resetPositions();
       touchesInCurrentTurn = 0;
-      timerStarted = false; // Reseta o cronômetro para esperar o primeiro movimento após o gol
+      timerStarted = false;
       currentState = GAME_STATES.WAITING_FOR_SHOT;
       updateTurnDisplay();
       updateTacticsUI();
@@ -1406,39 +1285,14 @@
       }
     }
 
-    function scoreGoal(scoringTeam) {
-      if (scoringTeam === 'home') homeScore++;
-      else awayScore++;
-
-      document.getElementById('home-score').textContent = homeScore;
-      document.getElementById('away-score').textContent = awayScore;
-
-      // O time que tomou o gol é quem recomeça com a bola
-      currentTurnTeam = (scoringTeam === 'home') ? 'away' : 'home';
-
-      playSound('goal');
-      currentState = GAME_STATES.GOAL_CELEBRATION;
-      updateTacticsUI(); // Permite mudar tática na celebração/reset do gol
-
-      const banner = document.getElementById('goal-banner');
-      banner.classList.add('show');
-
-      setTimeout(() => {
-        banner.classList.remove('show');
-        startReplay();
-      }, 1500);
-    }
-
     function switchTurn() {
       currentTurnTeam = (currentTurnTeam === 'home') ? 'away' : 'home';
       touchesInCurrentTurn = 0;
       
-      // Limpa totalmente qualquer seleção ou arraste residual que possa travar a jogada
       selectedPlayerId = null;
       dragStart = null;
       dragCurrent = null;
       
-      // Garante que todas as peças estejam 100% paradas para liberar o clique
       stopAllMotion();
       
       currentState = GAME_STATES.WAITING_FOR_SHOT;
@@ -1528,7 +1382,6 @@
     }
 
     function handlePointerDown(evt) {
-      // Se por algum motivo o estado estiver preso ou houver velocidade residual, força o estado correto se todas as peças estiverem praticamente paradas
       if (currentState !== GAME_STATES.WAITING_FOR_SHOT) {
         if (isEverythingStopped()) {
           currentState = GAME_STATES.WAITING_FOR_SHOT;
@@ -1538,11 +1391,10 @@
       }
 
       const coords = getCanvasCoords(evt);
-      // Maior tolerância para clique/toque (radius + 12px) facilitando a seleção em telas menores
       const clickedPlayer = players.find(p => {
         if (p.team !== currentTurnTeam) return false;
         const dist = Math.hypot(coords.x - p.x, coords.y - p.y);
-        return dist <= p.radius + 12;
+        return dist <= p.radius + 15;
       });
 
       if (clickedPlayer) {
@@ -1588,7 +1440,7 @@
     function startTimer() {
       clearInterval(timerInterval);
       matchTimeSeconds = selectedDurationSeconds;
-      timerStarted = false; // Garante que o cronômetro começa parado no apito inicial
+      timerStarted = false;
       updateTimerUI();
 
       timerInterval = setInterval(() => {
@@ -1634,7 +1486,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // Eventos
     window.addEventListener('load', () => {
       setupCanvas();
 
@@ -1717,7 +1568,7 @@
 
       document.getElementById('btn-sound').addEventListener('click', (e) => {
         soundEnabled = !soundEnabled;
-        e.target.textContent = `Som: ${soundEnabled ? 'LIGADO' : 'DESLIGADO'}`;
+        e.target.textContent = `Som: ${soundEnabled ? 'ON' : 'OFF'}`;
       });
 
       document.getElementById('select-tactics-home').addEventListener('change', resetPositions);
@@ -1734,7 +1585,7 @@
       resetPositions();
       updateTurnDisplay();
       currentState = GAME_STATES.WAITING_FOR_SHOT;
-      updateTacticsUI(); // Desabilita os seletores de tática ao iniciar a bola em jogo
+      updateTacticsUI();
       playSound('whistle');
       startTimer();
     }
