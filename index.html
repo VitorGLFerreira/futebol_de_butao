@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Futebol de Botão Arena</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: #12121c;
+      color: #ffffff;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 1280px;
+      padding: 10px;
+      position: relative;
+    }
+
+    /* Placar de Jogo */
+    #score-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: linear-gradient(180deg, #1f1f2e 0%, #111118 100%);
+      border: 2px solid #33334d;
+      border-radius: 12px;
+      padding: 6px 16px;
+      margin-bottom: 6px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
+    }
+
+    .team-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .score-num {
+      font-size: 1.8rem;
+      background-color: #09090d;
+      padding: 2px 14px;
+      border-radius: 6px;
+      color: #ffd700;
+      border: 1px solid #444;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    #match-info {
+      text-align: center;
+    }
+
+    #timer {
+      font-size: 1.4rem;
+      font-weight: bold;
+      font-family: monospace;
+      color: #00ffcc;
+    }
+
+    #turn-indicator {
+      font-size: 0.85rem;
+      color: #66fcf1;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    /* Painel de Controles Superiores */
+    #controls-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      background: linear-gradient(180deg, #3a3d52 0%, #222433 100%);
+      color: #ffffff;
+      border: 1px solid #555875;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: linear-gradient(180deg, #4a4e69 0%, #2d3045 100%);
+      border-color: #66fcf1;
+    }
+
+    .btn-danger {
+      background: linear-gradient(180deg, #8b0000 0%, #4a0000 100%);
+      border-color: #ff4444;
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(180deg, #a50000 0%, #660000 100%);
+    }
+
+    /* Estilização Destacada para Seletores de Tática */
+    .tactics-group {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(30, 30, 48, 0.8);
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1px solid #4a4d66;
+    }
+
+    @media (max-width: 600px) {
+      .tactics-group {
+        margin-left: 0;
+      }
+      .team-card {
+        font-size: 0.9rem;
+        gap: 6px;
+      }
+      .score-num {
+        font-size: 1.3rem;
+        padding: 2px 8px;
+        min-width: 35px;
+      }
+      #timer {
+        font-size: 1.1rem;
+      }
+    }
+
+    .tactics-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tactics-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .select-tactics {
+      background-color: #1a1a28;
+      color: #66fcf1;
+      font-weight: bold;
+      border: 1px solid #66fcf1;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .select-tactics option {
+      background-color: #12121c;
+      color: #ffffff;
+    }
+
+    /* Container do Canvas com Enquadramento Dinâmico */
+    #canvas-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      background-color: #121212;
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      touch-action: none;
+    }
+
+    /* Menus e Modais Overlay */
+    .menu-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 16, 0.88);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+      max-width: 1280px;
+      max-height: 850px;
+      padding: 10px;
+      position: relative;
+    }
+
+    /* Placar de Jogo */
+    #score-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: linear-gradient(180deg, #1f1f2e 0%, #111118 100%);
+      border: 2px solid #33334d;
+      border-radius: 12px;
+      padding: 8px 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .team-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .score-num {
+      font-size: 1.8rem;
+      background-color: #09090d;
+      padding: 2px 14px;
+      border-radius: 6px;
+      color: #ffd700;
+      border: 1px solid #444;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    #match-info {
+      text-align: center;
+    }
+
+    #timer {
+      font-size: 1.4rem;
+      font-weight: bold;
+      font-family: monospace;
+      color: #00ffcc;
+    }
+
+    #turn-indicator {
+      font-size: 0.85rem;
+      color: #66fcf1;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    /* Painel de Controles Superiores */
+    #controls-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(180deg, #3a3d52 0%, #222433 100%);
+      color: #ffffff;
+      border: 1px solid #555875;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: linear-gradient(180deg, #4a4e69 0%, #2d3045 100%);
+      border-color: #66fcf1;
+    }
+
+    .btn-danger {
+      background: linear-gradient(180deg, #8b0000 0%, #4a0000 100%);
+      border-color: #ff4444;
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(180deg, #a50000 0%, #660000 100%);
+    }
+
+    /* Estilização Destacada para Seletores de Tática */
+    .tactics-group {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(30, 30, 48, 0.8);
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1px solid #4a4d66;
+    }
+
+    .tactics-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tactics-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .select-tactics {
+      background-color: #1a1a28;
+      color: #66fcf1;
+      font-weight: bold;
+      border: 1px solid #66fcf1;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .select-tactics option {
+      background-color: #12121c;
+      color: #ffffff;
+    }
+
+    /* Container do Canvas */
+    #canvas-container {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    canvas {
+      background-color: #121212;
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+      max-width: 100%;
+      max-height: 100%;
+      touch-action: none;
+    }
+
+    /* Menus e Modais Overlay */
+    .menu-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 16, 0.88);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      border-radius: 12px;
+    }
+
+    .menu-card {
+      background: #1e1e2d;
+      border: 2px solid #3d3d5c;
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .menu-card h1 {
+      font-size: 2rem;
+      color: #66fcf1;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .menu-card h2 {
+      font-size: 1.4rem;
+      color: #ffd700;
+      margin-bottom: 15px;
+    }
+
+    .menu-card p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .menu-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .menu-btn {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      background: linear-gradient(90deg, #45a29e 0%, #66fcf1 100%);
+      color: #0b0c10;
+      transition: transform 0.1s, filter 0.2s;
+    }
+
+    .menu-btn:hover {
+      filter: brightness(1.15);
+      transform: translateY(-2px);
+    }
+
+    .menu-btn-secondary {
+      background: #2c2c3e;
+      color: #fff;
+      border: 1px solid #4d4d6e;
+    }
+
+    .menu-btn-secondary:hover {
+      background: #3a3a52;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .form-row label {
+      font-size: 0.9rem;
+      color: #ddd;
+    }
+
+    .form-row select, .form-row input {
+      background: #111118;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    /* Banner de Gol */
+    #goal-banner {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(255, 215, 0, 0.95);
+      color: #000;
+      padding: 20px 50px;
+      border-radius: 20px;
+      font-size: 3.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      z-index: 90;
+    }
+
+    #goal-banner.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Overlay do Replay */
+    #replay-indicator {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      background-color: rgba(220, 38, 38, 0.85);
+      color: white;
+      font-weight: bold;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+      animation: pulse 1s infinite alternate;
+      z-index: 95;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.5; }
+      100% { opacity: 1.0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- Placar Superior -->
+    <div id="score-board">
+      <div class="team-card">
+        <span id="home-name-display">Brasil</span>
+        <span id="home-score" class="score-num">0</span>
+      </div>
+
+      <div id="match-info">
+        <div id="timer">03:00</div>
+        <div id="turn-indicator">Vez do Brasil (1 jogada)</div>
+      </div>
+
+      <div class="team-card">
+        <span id="away-score" class="score-num">0</span>
+        <span id="away-name-display">Argentina</span>
+      </div>
+    </div>
+
+    <!-- Barra de Controles Globais -->
+    <div id="controls-bar">
+      <button id="btn-pause" class="btn">Pausar Jogo</button>
+      <button id="btn-sound" class="btn">Som: LIGADO</button>
+      <button id="btn-cancel" class="btn btn-danger">Cancelar Seleção</button>
+      
+      <div class="tactics-group">
+        <div class="tactics-item">
+          <label for="select-tactics-home" class="tactics-label">Tática Brasil:</label>
+          <select id="select-tactics-home" class="select-tactics">
+            <option value="4-3-3" selected>4-3-3</option>
+            <option value="4-4-2">4-4-2</option>
+            <option value="3-5-2">3-5-2</option>
+          </select>
+        </div>
+
+        <div class="tactics-item">
+          <label for="select-tactics-away" class="tactics-label">Tática Arg:</label>
+          <select id="select-tactics-away" class="select-tactics">
+            <option value="4-3-3" selected>4-3-3</option>
+            <option value="4-4-2">4-4-2</option>
+            <option value="3-5-2">3-5-2</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container do Canvas do Jogo -->
+    <div id="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+      <div id="goal-banner">GOOOOL!</div>
+      <div id="replay-indicator">● REPLAY</div>
+
+      <!-- MENU PRINCIPAL -->
+      <div id="main-menu" class="menu-modal">
+        <div class="menu-card">
+          <h1>Futebol de Botão</h1>
+          <p>Arena Clássica 2D</p>
+
+          <div class="menu-btn-group">
+            <button id="menu-start-pve" class="menu-btn">1 Jogador vs IA</button>
+            <button id="menu-start-pvp" class="menu-btn menu-btn-secondary">2 Jogadores (Local)</button>
+            <button id="menu-open-settings" class="menu-btn menu-btn-secondary">Configurações da Partida</button>
+            <button id="menu-open-how-to" class="menu-btn menu-btn-secondary">Como Jogar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU DE CONFIGURAÇÕES -->
+      <div id="settings-menu" class="menu-modal" style="display: none;">
+        <div class="menu-card">
+          <h2>Configurações</h2>
+
+          <div class="form-row">
+            <label for="setting-duration">Duração da Partida:</label>
+            <select id="setting-duration">
+              <option value="180" selected>3 Minutos</option>
+              <option value="300">5 Minutos</option>
+              <option value="420">7 Minutos</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="setting-ai">Dificuldade da IA:</label>
+            <select id="setting-ai">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="setting-home-name">Time Casa:</label>
+            <input type="text" id="setting-home-name" value="Brasil" maxlength="12" />
+          </div>
+
+          <div class="form-row">
+            <label for="setting-away-name">Time Visitante:</label>
+            <input type="text" id="setting-away-name" value="Argentina" maxlength="12" />
+          </div>
+
+          <div class="menu-btn-group" style="margin-top: 20px;">
+            <button id="settings-save-btn" class="menu-btn">Salvar e Voltar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU COMO JOGAR -->
+      <div id="how-to-play-menu" class="menu-modal" style="display: none;">
+        <div class="menu-card">
+          <h2>Como Jogar</h2>
+          <p style="text-align: left;">
+            1. <strong>Clique/Toque</strong> em um botão da sua equipe.<br/>
+            2. <strong>Arraste para trás</strong> para ajustar a força e o ângulo da mira.<br/>
+            3. <strong>Solte</strong> para disparar o botão!<br/>
+            4. Cada time tem direito a <strong>1 jogada por turno</strong>.<br/>
+            5. Vença quem marcar mais gols no tempo limite!
+          </p>
+          <button id="how-to-back-btn" class="menu-btn">Entendido</button>
+        </div>
+      </div>
+
+      <!-- MENU DE PAUSA -->
+      <div id="pause-menu" class="menu-modal" style="display: none;">
+        <div class="menu-card">
+          <h2>Jogo Pausado</h2>
+          <div class="menu-btn-group">
+            <button id="pause-resume-btn" class="menu-btn">Continuar Partida</button>
+            <button id="pause-restart-btn" class="menu-btn menu-btn-secondary">Reiniciar Campo</button>
+            <button id="pause-quit-btn" class="menu-btn menu-btn-secondary">Sair para o Menu</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Dimensões virtuais do campo de futebol
+    const FIELD_WIDTH = 1200;
+    const FIELD_HEIGHT = 800;
+
+    const PADDING = 60;
+    const PITCH_X = PADDING;
+    const PITCH_Y = PADDING;
+    const PITCH_W = FIELD_WIDTH - (PADDING * 2);
+    const PITCH_H = FIELD_HEIGHT - (PADDING * 2);
+
+    const GOAL_DEPTH = 45;
+    const GOAL_HEIGHT = 180;
+
+    const BUTTON_RADIUS = 22;
+    const BUTTON_MASS = 1.8;
+    const GK_WIDTH = 20;
+    const GK_HEIGHT = 80;
+    const GK_MASS = 5.0;
+
+    const BALL_RADIUS = 9;
+    const BALL_MASS = 0.5;
+
+    const FRICTION = 0.982;
+    const BALL_FRICTION = 0.986;
+    const RESTITUTION = 0.85;
+    const STOP_THRESHOLD = 0.15; // Ajustado para parar com mais facilidade e evitar micro-movimentos infinitos
+    const SUBSTEPS = 8;
+
+    const MIN_DRAG_DIST = 15;
+    const MAX_DRAG_DIST = 120;
+    const MAX_IMPULSE = 22;
+
+    const GAME_STATES = {
+      MENU: 'MENU',
+      PAUSED: 'PAUSED',
+      WAITING_FOR_SHOT: 'WAITING_FOR_SHOT',
+      BALL_IN_MOTION: 'BALL_IN_MOTION',
+      AI_THINKING: 'AI_THINKING',
+      GOAL_CELEBRATION: 'GOAL_CELEBRATION',
+      REPLAY: 'REPLAY',
+      GAME_OVER: 'GAME_OVER'
+    };
+
+    let currentState = GAME_STATES.MENU;
+    let timerStarted = false; // Flag para controlar se o cronômetro começou a rolar
+    let motionTimer = 0; // Contador de segurança contra travamentos
+
+    // Buffer do Replay (Guarda as posições dos últimos 240 frames ~ 4 segundos)
+    const REPLAY_MAX_FRAMES = 240;
+    let replayBuffer = [];
+    let replayCurrentFrame = 0;
+
+    let currentTurnTeam = 'home';
+    const MAX_TOUCHES_PER_TURN = 1;
+    let touchesInCurrentTurn = 0;
+
+    let gameMode = 'pve';
+    let aiDifficulty = 'medium';
+
+    let homeTeamName = 'Brasil';
+    let awayTeamName = 'Argentina';
+
+    let homeScore = 0;
+    let awayScore = 0;
+    let selectedDurationSeconds = 180;
+    let matchTimeSeconds = 180;
+    let timerInterval = null;
+
+    let soundEnabled = true;
+
+    // Entidades
+    let ball = {
+      x: PITCH_X + PITCH_W / 2,
+      y: PITCH_Y + PITCH_H / 2,
+      vx: 0,
+      vy: 0,
+      radius: BALL_RADIUS,
+      mass: BALL_MASS,
+      color: '#ffffff'
+    };
+
+    let players = [];
+    let selectedPlayerId = null;
+    let dragStart = null;
+    let dragCurrent = null;
+
+    let audioCtx = null;
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'kick') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(120, now);
+          osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+          gain.gain.setValueAtTime(0.8, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'hit') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+          gain.gain.setValueAtTime(0.5, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'whistle') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1800, now);
+          osc.frequency.setValueAtTime(2200, now + 0.1);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'goal') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(554.37, now + 0.15);
+          osc.frequency.setValueAtTime(659.25, now + 0.3);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        }
+      } catch (e) {
+        console.warn('Audio API error:', e);
+      }
+    }
+
+    const TACTICS_CONFIG = {
+      '4-3-3': [
+        { role: 'gk', rx: -0.48, ry: 0.0 },
+        { role: 'df', rx: -0.38, ry: -0.3 },
+        { role: 'df', rx: -0.38, ry: -0.1 },
+        { role: 'df', rx: -0.38, ry: 0.1 },
+        { role: 'df', rx: -0.38, ry: 0.3 },
+        { role: 'mf', rx: -0.22, ry: -0.25 },
+        { role: 'mf', rx: -0.22, ry: 0.0 },
+        { role: 'mf', rx: -0.22, ry: 0.25 },
+        { role: 'fw', rx: -0.08, ry: -0.32 },
+        { role: 'fw', rx: -0.06, ry: 0.0 },
+        { role: 'fw', rx: -0.08, ry: 0.32 }
+      ],
+      '4-4-2': [
+        { role: 'gk', rx: -0.48, ry: 0.0 },
+        { role: 'df', rx: -0.38, ry: -0.32 },
+        { role: 'df', rx: -0.38, ry: -0.1 },
+        { role: 'df', rx: -0.38, ry: 0.1 },
+        { role: 'df', rx: -0.38, ry: 0.32 },
+        { role: 'mf', rx: -0.22, ry: -0.35 },
+        { role: 'mf', rx: -0.22, ry: -0.12 },
+        { role: 'mf', rx: -0.22, ry: 0.12 },
+        { role: 'mf', rx: -0.22, ry: 0.35 },
+        { role: 'fw', rx: -0.08, ry: -0.15 },
+        { role: 'fw', rx: -0.08, ry: 0.15 }
+      ],
+      '3-5-2': [
+        { role: 'gk', rx: -0.48, ry: 0.0 },
+        { role: 'df', rx: -0.38, ry: -0.25 },
+        { role: 'df', rx: -0.38, ry: 0.0 },
+        { role: 'df', rx: -0.38, ry: 0.25 },
+        { role: 'mf', rx: -0.22, ry: -0.35 },
+        { role: 'mf', rx: -0.22, ry: -0.18 },
+        { role: 'mf', rx: -0.22, ry: 0.0 },
+        { role: 'mf', rx: -0.22, ry: 0.18 },
+        { role: 'mf', rx: -0.22, ry: 0.35 },
+        { role: 'fw', rx: -0.08, ry: -0.15 },
+        { role: 'fw', rx: -0.08, ry: 0.15 }
+      ]
+    };
+
+    function initPlayers() {
+      players = [];
+      const homeTactic = document.getElementById('select-tactics-home').value;
+      const awayTactic = document.getElementById('select-tactics-away').value;
+
+      const centerX = PITCH_X + PITCH_W / 2;
+      const centerY = PITCH_Y + PITCH_H / 2;
+
+      // Time Casa (Brasil)
+      TACTICS_CONFIG[homeTactic].forEach((pos, index) => {
+        const isGK = (pos.role === 'gk');
+        players.push({
+          id: `home_${index + 1}`,
+          team: 'home',
+          number: isGK ? 1 : index + 1,
+          isGK: isGK,
+          x: centerX + (pos.rx * PITCH_W),
+          y: centerY + (pos.ry * PITCH_H),
+          vx: 0,
+          vy: 0,
+          radius: isGK ? GK_WIDTH : BUTTON_RADIUS,
+          width: isGK ? GK_WIDTH : BUTTON_RADIUS * 2,
+          height: isGK ? GK_HEIGHT : BUTTON_RADIUS * 2,
+          mass: isGK ? GK_MASS : BUTTON_MASS,
+          colorPrimary: '#009c3b',
+          colorSecondary: '#ffdf00',
+          textColor: '#ffffff'
+        });
+      });
+
+      // Time Visitante (Argentina)
+      TACTICS_CONFIG[awayTactic].forEach((pos, index) => {
+        const isGK = (pos.role === 'gk');
+        players.push({
+          id: `away_${index + 1}`,
+          team: 'away',
+          number: isGK ? 1 : index + 1,
+          isGK: isGK,
+          x: centerX - (pos.rx * PITCH_W),
+          y: centerY - (pos.ry * PITCH_H),
+          vx: 0,
+          vy: 0,
+          radius: isGK ? GK_WIDTH : BUTTON_RADIUS,
+          width: isGK ? GK_WIDTH : BUTTON_RADIUS * 2,
+          height: isGK ? GK_HEIGHT : BUTTON_RADIUS * 2,
+          mass: isGK ? GK_MASS : BUTTON_MASS,
+          colorPrimary: '#74acdf',
+          colorSecondary: '#ffffff',
+          textColor: '#000000'
+        });
+      });
+    }
+
+    function resetPositions() {
+      initPlayers();
+      ball.x = PITCH_X + PITCH_W / 2;
+      ball.y = PITCH_Y + PITCH_H / 2;
+      ball.vx = 0;
+      ball.vy = 0;
+      selectedPlayerId = null;
+      dragStart = null;
+      dragCurrent = null;
+      replayBuffer = [];
+    }
+
+    function recordReplayFrame() {
+      if (currentState === GAME_STATES.REPLAY) return;
+
+      const frameData = {
+        ball: { x: ball.x, y: ball.y },
+        players: players.map(p => ({ id: p.id, x: p.x, y: p.y }))
+      };
+
+      replayBuffer.push(frameData);
+      if (replayBuffer.length > REPLAY_MAX_FRAMES) {
+        replayBuffer.shift();
+      }
+    }
+
+    function renderPitch() {
+      ctx.clearRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+
+      ctx.fillStyle = '#2d1810';
+      ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+
+      const stripes = 12;
+      const stripeWidth = PITCH_W / stripes;
+
+      for (let i = 0; i < stripes; i++) {
+        ctx.fillStyle = (i % 2 === 0) ? '#2e8b57' : '#27774a';
+        ctx.fillRect(PITCH_X + (i * stripeWidth), PITCH_Y, stripeWidth, PITCH_H);
+      }
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 5;
+      ctx.fillStyle = '#ffffff';
+
+      ctx.strokeRect(PITCH_X, PITCH_Y, PITCH_W, PITCH_H);
+
+      const centerX = PITCH_X + (PITCH_W / 2);
+      const centerY = PITCH_Y + (PITCH_H / 2);
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, PITCH_Y);
+      ctx.lineTo(centerX, PITCH_Y + PITCH_H);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const areaW = 160;
+      const areaH = 360;
+      const areaY = centerY - (areaH / 2);
+
+      ctx.strokeRect(PITCH_X, areaY, areaW, areaH);
+      ctx.strokeRect(PITCH_X + PITCH_W - areaW, areaY, areaW, areaH);
+
+      const smallAreaW = 60;
+      const smallAreaH = 220;
+      const smallAreaY = centerY - (smallAreaH / 2);
+
+      ctx.strokeRect(PITCH_X, smallAreaY, smallAreaW, smallAreaH);
+      ctx.strokeRect(PITCH_X + PITCH_W - smallAreaW, smallAreaY, smallAreaW, smallAreaH);
+
+      const goalY = centerY - (GOAL_HEIGHT / 2);
+      drawGoal(PITCH_X - GOAL_DEPTH, goalY, GOAL_DEPTH, GOAL_HEIGHT, true);
+      drawGoal(PITCH_X + PITCH_W, goalY, GOAL_DEPTH, GOAL_HEIGHT, false);
+    }
+
+    function drawGoal(x, y, w, h, isLeft) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fillRect(x, y, w, h);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let gx = x; gx <= x + w; gx += 8) {
+        ctx.moveTo(gx, y);
+        ctx.lineTo(gx, y + h);
+      }
+      for (let gy = y; gy <= y + h; gy += 8) {
+        ctx.moveTo(x, gy);
+        ctx.lineTo(x + w, gy);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(x, y, w, h);
+    }
+
+    function drawReplayOverlay() {
+      if (currentState !== GAME_STATES.REPLAY) return;
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 50, 100, 0.08)';
+      ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < FIELD_HEIGHT; y += 4) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(FIELD_WIDTH, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawBall() {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 3;
+
+      ctx.fillStyle = ball.color;
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let i = 0; i < 5; i++) {
+        const ang = (i * Math.PI * 2) / 5;
+        const gx = ball.x + Math.cos(ang) * 6;
+        const gy = ball.y + Math.sin(ang) * 6;
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawPlayers() {
+      players.forEach(p => {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
+
+        if (p.isGK) {
+          const gx = p.x - p.width / 2;
+          const gy = p.y - p.height / 2;
+
+          // Preenchimento com cor sólida vívida
+          ctx.fillStyle = p.colorPrimary;
+          ctx.fillRect(gx, gy, p.width, p.height);
+
+          // Borda reforçada e contraste
+          ctx.strokeStyle = p.colorSecondary;
+          ctx.lineWidth = 4;
+          ctx.strokeRect(gx, gy, p.width, p.height);
+
+          // Número do Goleiro
+          ctx.fillStyle = p.textColor;
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('1', p.x, p.y);
+        } else {
+          // Preenchimento do botão
+          ctx.fillStyle = p.colorPrimary;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Borda dupla/reforçada para destacar no gramado
+          ctx.strokeStyle = p.colorSecondary;
+          ctx.lineWidth = 4;
+          ctx.stroke();
+
+          // Anel interno para efeito de brilho/botão tridimensional
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius - 4, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Número do jogador em negrito com alto contraste
+          ctx.fillStyle = p.textColor;
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.number, p.x, p.y);
+        }
+
+        // Destaque vívido quando o botão for selecionado
+        if (p.id === selectedPlayerId) {
+          ctx.strokeStyle = '#00ffff';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius + 6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function drawAimLine() {
+      if (!dragStart || !dragCurrent || !selectedPlayerId) return;
+
+      const player = players.find(p => p.id === selectedPlayerId);
+      if (!player) return;
+
+      const dx = dragStart.x - dragCurrent.x;
+      const dy = dragStart.y - dragCurrent.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < MIN_DRAG_DIST) return;
+
+      const clampedDist = Math.min(dist, MAX_DRAG_DIST);
+      const powerRatio = clampedDist / MAX_DRAG_DIST;
+
+      const angle = Math.atan2(dy, dx);
+      const aimLength = clampedDist * 1.5;
+
+      const targetX = player.x + Math.cos(angle) * aimLength;
+      const targetY = player.y + Math.sin(angle) * aimLength;
+
+      const red = Math.floor(powerRatio * 255);
+      const green = Math.floor((1 - powerRatio) * 255);
+      const aimColor = `rgb(${red}, ${green}, 0)`;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y);
+      ctx.lineTo(dragCurrent.x, dragCurrent.y);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.strokeStyle = aimColor;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+
+      const headLen = 12;
+      ctx.fillStyle = aimColor;
+      ctx.beginPath();
+      ctx.moveTo(targetX, targetY);
+      ctx.lineTo(
+        targetX - headLen * Math.cos(angle - Math.PI / 6),
+        targetY - headLen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        targetX - headLen * Math.cos(angle + Math.PI / 6),
+        targetY - headLen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function updatePhysics() {
+      if (currentState === GAME_STATES.PAUSED || currentState === GAME_STATES.MENU || currentState === GAME_STATES.REPLAY) return;
+
+      recordReplayFrame();
+
+      for (let step = 0; step < SUBSTEPS; step++) {
+        ball.x += ball.vx / SUBSTEPS;
+        ball.y += ball.vy / SUBSTEPS;
+        ball.vx *= Math.pow(BALL_FRICTION, 1 / SUBSTEPS);
+        ball.vy *= Math.pow(BALL_FRICTION, 1 / SUBSTEPS);
+
+        players.forEach(p => {
+          p.x += p.vx / SUBSTEPS;
+          p.y += p.vy / SUBSTEPS;
+          p.vx *= Math.pow(FRICTION, 1 / SUBSTEPS);
+          p.vy *= Math.pow(FRICTION, 1 / SUBSTEPS);
+        });
+
+        for (let i = 0; i < players.length; i++) {
+          for (let j = i + 1; j < players.length; j++) {
+            resolveCollision(players[i], players[j]);
+          }
+        }
+
+        players.forEach(p => {
+          resolveCollision(p, ball);
+        });
+
+        checkBoundaries(ball, true);
+        players.forEach(p => checkBoundaries(p, false));
+      }
+
+      // Zera o movimento quando a velocidade é menor que o limite (evita que a IA ou física fiquem presas em cálculo infinito)
+      if (Math.hypot(ball.vx, ball.vy) < STOP_THRESHOLD) {
+        ball.vx = 0;
+        ball.vy = 0;
+      }
+      players.forEach(p => {
+        if (Math.hypot(p.vx, p.vy) < STOP_THRESHOLD) {
+          p.vx = 0;
+          p.vy = 0;
+        }
+      });
+
+      if (currentState === GAME_STATES.BALL_IN_MOTION) {
+        motionTimer++;
+
+        if (checkGoalCondition()) {
+          motionTimer = 0;
+          return;
+        }
+
+        // Se passar mais de 3.5 segundos (210 frames) em movimento ou se tudo parou, força a troca de turno para destravar
+        if (isEverythingStopped() || motionTimer > 210) {
+          motionTimer = 0;
+          stopAllMotion();
+          switchTurn();
+        }
+      } else {
+        motionTimer = 0;
+      }
+    }
+
+    function stopAllMotion() {
+      ball.vx = 0;
+      ball.vy = 0;
+      players.forEach(p => {
+        p.vx = 0;
+        p.vy = 0;
+      });
+    }
+
+    function resolveCollision(a, b) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = a.radius + b.radius;
+
+      if (dist < minDist && dist > 0) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        const overlap = minDist - dist;
+        a.x -= nx * overlap * 0.5;
+        a.y -= ny * overlap * 0.5;
+        b.x += nx * overlap * 0.5;
+        b.y += ny * overlap * 0.5;
+
+        const kx = a.vx - b.vx;
+        const ky = a.vy - b.vy;
+        const p = 2 * (nx * kx + ny * ky) / (a.mass + b.mass);
+
+        a.vx -= p * b.mass * nx * RESTITUTION;
+        a.vy -= p * b.mass * ny * RESTITUTION;
+        b.vx += p * a.mass * nx * RESTITUTION;
+        b.vy += p * a.mass * ny * RESTITUTION;
+
+        playSound('hit');
+      }
+    }
+
+    function checkBoundaries(obj, isBall) {
+      const minY = PITCH_Y + obj.radius;
+      const maxY = PITCH_Y + PITCH_H - obj.radius;
+      const minX = PITCH_X + obj.radius;
+      const maxX = PITCH_X + PITCH_W - obj.radius;
+
+      if (obj.y < minY) { obj.y = minY; obj.vy *= -RESTITUTION; }
+      if (obj.y > maxY) { obj.y = maxY; obj.vy *= -RESTITUTION; }
+
+      const centerY = PITCH_Y + PITCH_H / 2;
+      const inGoalRange = (obj.y > centerY - GOAL_HEIGHT / 2) && (obj.y < centerY + GOAL_HEIGHT / 2);
+
+      if (isBall && inGoalRange) return;
+
+      if (obj.x < minX) { obj.x = minX; obj.vx *= -RESTITUTION; }
+      if (obj.x > maxX) { obj.x = maxX; obj.vx *= -RESTITUTION; }
+    }
+
+    function isEverythingStopped() {
+      if (Math.hypot(ball.vx, ball.vy) > STOP_THRESHOLD) return false;
+      return players.every(p => Math.hypot(p.vx, p.vy) <= STOP_THRESHOLD);
+    }
+
+    function checkGoalCondition() {
+      const centerY = PITCH_Y + PITCH_H / 2;
+      const inGoalHeight = (ball.y > centerY - GOAL_HEIGHT / 2) && (ball.y < centerY + GOAL_HEIGHT / 2);
+
+      if (inGoalHeight) {
+        if (ball.x < PITCH_X - 10) {
+          scoreGoal('away');
+          return true;
+        } else if (ball.x > PITCH_X + PITCH_W + 10) {
+          scoreGoal('home');
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function scoreGoal(scoringTeam) {
+      if (scoringTeam === 'home') homeScore++;
+      else awayScore++;
+
+      document.getElementById('home-score').textContent = homeScore;
+      document.getElementById('away-score').textContent = awayScore;
+
+      playSound('goal');
+      currentState = GAME_STATES.GOAL_CELEBRATION;
+
+      const banner = document.getElementById('goal-banner');
+      banner.classList.add('show');
+
+      setTimeout(() => {
+        banner.classList.remove('show');
+        startReplay();
+      }, 1500);
+    }
+
+    function startReplay() {
+      if (replayBuffer.length < 10) {
+        finishGoalAndReset();
+        return;
+      }
+
+      currentState = GAME_STATES.REPLAY;
+      replayCurrentFrame = 0;
+      document.getElementById('replay-indicator').style.display = 'flex';
+    }
+
+    function updateReplay() {
+      if (currentState !== GAME_STATES.REPLAY) return;
+
+      const frameIndex = Math.floor(replayCurrentFrame);
+      if (frameIndex < replayBuffer.length) {
+        const frame = replayBuffer[frameIndex];
+
+        ball.x = frame.ball.x;
+        ball.y = frame.ball.y;
+
+        frame.players.forEach(savedP => {
+          const p = players.find(player => player.id === savedP.id);
+          if (p) {
+            p.x = savedP.x;
+            p.y = savedP.y;
+          }
+        });
+
+        replayCurrentFrame += 0.45;
+      } else {
+        document.getElementById('replay-indicator').style.display = 'none';
+        finishGoalAndReset();
+      }
+    }
+
+    function finishGoalAndReset() {
+      resetPositions();
+      touchesInCurrentTurn = 0;
+      timerStarted = false; // Reseta o cronômetro para esperar o primeiro movimento após o gol
+      currentState = GAME_STATES.WAITING_FOR_SHOT;
+      updateTurnDisplay();
+      updateTacticsUI();
+      if (gameMode === 'pve' && currentTurnTeam === 'away') {
+        executeAITurn();
+      }
+    }
+
+    function scoreGoal(scoringTeam) {
+      if (scoringTeam === 'home') homeScore++;
+      else awayScore++;
+
+      document.getElementById('home-score').textContent = homeScore;
+      document.getElementById('away-score').textContent = awayScore;
+
+      // O time que tomou o gol é quem recomeça com a bola
+      currentTurnTeam = (scoringTeam === 'home') ? 'away' : 'home';
+
+      playSound('goal');
+      currentState = GAME_STATES.GOAL_CELEBRATION;
+      updateTacticsUI(); // Permite mudar tática na celebração/reset do gol
+
+      const banner = document.getElementById('goal-banner');
+      banner.classList.add('show');
+
+      setTimeout(() => {
+        banner.classList.remove('show');
+        startReplay();
+      }, 1500);
+    }
+
+    function switchTurn() {
+      currentTurnTeam = (currentTurnTeam === 'home') ? 'away' : 'home';
+      touchesInCurrentTurn = 0;
+      currentState = GAME_STATES.WAITING_FOR_SHOT;
+      selectedPlayerId = null;
+      updateTurnDisplay();
+
+      if (gameMode === 'pve' && currentTurnTeam === 'away') {
+        executeAITurn();
+      }
+    }
+
+    function updateTurnDisplay() {
+      const activeName = (currentTurnTeam === 'home') ? homeTeamName : ((gameMode === 'pve') ? `${awayTeamName} (IA)` : awayTeamName);
+      document.getElementById('turn-indicator').textContent = `Vez do ${activeName} (1 jogada)`;
+      document.getElementById('turn-indicator').style.color = (currentTurnTeam === 'home') ? '#66fcf1' : '#ffd700';
+    }
+
+    function updateTacticsUI() {
+      const selectHome = document.getElementById('select-tactics-home');
+      const selectAway = document.getElementById('select-tactics-away');
+      
+      // Só permite trocar tática no MENU, no GOAL_CELEBRATION ou quando o tempo acabou
+      const canChangeTactics = (
+        currentState === GAME_STATES.MENU || 
+        currentState === GAME_STATES.GOAL_CELEBRATION ||
+        currentState === GAME_STATES.GAME_OVER
+      );
+
+      if (selectHome) selectHome.disabled = !canChangeTactics;
+      if (selectAway) selectAway.disabled = !canChangeTactics;
+    }
+
+    function executeAITurn() {
+      if (currentState !== GAME_STATES.AI_THINKING && currentState !== GAME_STATES.WAITING_FOR_SHOT) return;
+      
+      currentState = GAME_STATES.AI_THINKING;
+      setTimeout(() => {
+        // Garante que o jogo não trocou de estado durante o timeout
+        if (currentState !== GAME_STATES.AI_THINKING) return;
+
+        const aiPlayers = players.filter(p => p.team === 'away' && !p.isGK);
+        if (!aiPlayers.length) {
+          switchTurn();
+          return;
+        }
+
+        let bestPlayer = aiPlayers[0];
+        let minDist = Infinity;
+
+        aiPlayers.forEach(p => {
+          const d = Math.hypot(ball.x - p.x, ball.y - p.y);
+          if (d < minDist) {
+            minDist = d;
+            bestPlayer = p;
+          }
+        });
+
+        const dx = ball.x - bestPlayer.x;
+        const dy = ball.y - bestPlayer.y;
+        let angle = Math.atan2(dy, dx);
+
+        if (aiDifficulty === 'easy') {
+          angle += (Math.random() - 0.5) * 0.4;
+        } else if (aiDifficulty === 'medium') {
+          angle += (Math.random() - 0.5) * 0.15;
+        }
+
+        const impulse = MAX_IMPULSE * (aiDifficulty === 'easy' ? 0.7 : 0.9);
+        bestPlayer.vx = Math.cos(angle) * impulse;
+        bestPlayer.vy = Math.sin(angle) * impulse;
+
+        timerStarted = true; // Inicia o tempo no primeiro movimento da IA
+        playSound('kick');
+        currentState = GAME_STATES.BALL_IN_MOTION;
+      }, 600);
+    }
+
+    function getCanvasCoords(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+
+      const scaleX = FIELD_WIDTH / rect.width;
+      const scaleY = FIELD_HEIGHT / rect.height;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function handlePointerDown(evt) {
+      if (currentState !== GAME_STATES.WAITING_FOR_SHOT) return;
+
+      const coords = getCanvasCoords(evt);
+      const clickedPlayer = players.find(p => {
+        if (p.team !== currentTurnTeam) return false;
+        const dist = Math.hypot(coords.x - p.x, coords.y - p.y);
+        return dist <= p.radius + 5;
+      });
+
+      if (clickedPlayer) {
+        selectedPlayerId = clickedPlayer.id;
+        dragStart = coords;
+        dragCurrent = coords;
+      }
+    }
+
+    function handlePointerMove(evt) {
+      if (!dragStart || !selectedPlayerId) return;
+      dragCurrent = getCanvasCoords(evt);
+    }
+
+    function handlePointerUp() {
+      if (!dragStart || !dragCurrent || !selectedPlayerId) return;
+
+      const player = players.find(p => p.id === selectedPlayerId);
+      if (player) {
+        const dx = dragStart.x - dragCurrent.x;
+        const dy = dragStart.y - dragCurrent.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist >= MIN_DRAG_DIST) {
+          const clampedDist = Math.min(dist, MAX_DRAG_DIST);
+          const powerRatio = clampedDist / MAX_DRAG_DIST;
+          const impulse = powerRatio * MAX_IMPULSE;
+
+          const angle = Math.atan2(dy, dx);
+          player.vx = Math.cos(angle) * impulse;
+          player.vy = Math.sin(angle) * impulse;
+
+          timerStarted = true; // Inicia o tempo no primeiro chute do jogador
+          playSound('kick');
+          currentState = GAME_STATES.BALL_IN_MOTION;
+        }
+      }
+
+      dragStart = null;
+      dragCurrent = null;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      matchTimeSeconds = selectedDurationSeconds;
+      timerStarted = false; // Garante que o cronômetro começa parado no apito inicial
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        if (currentState !== GAME_STATES.PAUSED && currentState !== GAME_STATES.MENU && timerStarted) {
+          matchTimeSeconds--;
+          updateTimerUI();
+
+          if (matchTimeSeconds <= 0) {
+            clearInterval(timerInterval);
+            currentState = GAME_STATES.GAME_OVER;
+            alert(`Fim de jogo! Placar: ${homeTeamName} ${homeScore} x ${awayScore} ${awayTeamName}`);
+          }
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const mins = Math.floor(matchTimeSeconds / 60).toString().padStart(2, '0');
+      const secs = (matchTimeSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${mins}:${secs}`;
+    }
+
+    function setupCanvas() {
+      canvas.width = FIELD_WIDTH;
+      canvas.height = FIELD_HEIGHT;
+      resetPositions();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop() {
+      if (currentState === GAME_STATES.REPLAY) {
+        updateReplay();
+      } else {
+        updatePhysics();
+      }
+
+      renderPitch();
+      drawBall();
+      drawPlayers();
+      drawAimLine();
+      drawReplayOverlay();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Eventos
+    window.addEventListener('load', () => {
+      setupCanvas();
+
+      canvas.addEventListener('mousedown', handlePointerDown);
+      canvas.addEventListener('mousemove', handlePointerMove);
+      window.addEventListener('mouseup', handlePointerUp);
+
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointerDown(e); }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handlePointerMove(e); }, { passive: false });
+      window.addEventListener('touchend', handlePointerUp);
+
+      document.getElementById('menu-start-pve').addEventListener('click', () => {
+        gameMode = 'pve';
+        document.getElementById('main-menu').style.display = 'none';
+        startMatch();
+      });
+
+      document.getElementById('menu-start-pvp').addEventListener('click', () => {
+        gameMode = 'pvp';
+        document.getElementById('main-menu').style.display = 'none';
+        startMatch();
+      });
+
+      document.getElementById('menu-open-settings').addEventListener('click', () => {
+        document.getElementById('settings-menu').style.display = 'flex';
+      });
+
+      document.getElementById('settings-save-btn').addEventListener('click', () => {
+        selectedDurationSeconds = parseInt(document.getElementById('setting-duration').value);
+        aiDifficulty = document.getElementById('setting-ai').value;
+        homeTeamName = document.getElementById('setting-home-name').value || 'Brasil';
+        awayTeamName = document.getElementById('setting-away-name').value || 'Argentina';
+
+        document.getElementById('home-name-display').textContent = homeTeamName;
+        document.getElementById('away-name-display').textContent = awayTeamName;
+
+        document.getElementById('settings-menu').style.display = 'none';
+      });
+
+      document.getElementById('menu-open-how-to').addEventListener('click', () => {
+        document.getElementById('how-to-play-menu').style.display = 'flex';
+      });
+
+      document.getElementById('how-to-back-btn').addEventListener('click', () => {
+        document.getElementById('how-to-play-menu').style.display = 'none';
+      });
+
+      document.getElementById('btn-pause').addEventListener('click', () => {
+        currentState = GAME_STATES.PAUSED;
+        document.getElementById('pause-menu').style.display = 'flex';
+      });
+
+      document.getElementById('pause-resume-btn').addEventListener('click', () => {
+        document.getElementById('pause-menu').style.display = 'none';
+        currentState = GAME_STATES.WAITING_FOR_SHOT;
+      });
+
+      document.getElementById('pause-restart-btn').addEventListener('click', () => {
+        document.getElementById('pause-menu').style.display = 'none';
+        resetPositions();
+        homeScore = 0;
+        awayScore = 0;
+        document.getElementById('home-score').textContent = '0';
+        document.getElementById('away-score').textContent = '0';
+        currentState = GAME_STATES.WAITING_FOR_SHOT;
+        startTimer();
+      });
+
+      document.getElementById('pause-quit-btn').addEventListener('click', () => {
+        document.getElementById('pause-menu').style.display = 'none';
+        document.getElementById('main-menu').style.display = 'flex';
+        currentState = GAME_STATES.MENU;
+      });
+
+      document.getElementById('btn-cancel').addEventListener('click', () => {
+        selectedPlayerId = null;
+        dragStart = null;
+        dragCurrent = null;
+      });
+
+      document.getElementById('btn-sound').addEventListener('click', (e) => {
+        soundEnabled = !soundEnabled;
+        e.target.textContent = `Som: ${soundEnabled ? 'LIGADO' : 'DESLIGADO'}`;
+      });
+
+      document.getElementById('select-tactics-home').addEventListener('change', resetPositions);
+      document.getElementById('select-tactics-away').addEventListener('change', resetPositions);
+    });
+
+    function startMatch() {
+      homeScore = 0;
+      awayScore = 0;
+      document.getElementById('home-score').textContent = '0';
+      document.getElementById('away-score').textContent = '0';
+      currentTurnTeam = 'home';
+      touchesInCurrentTurn = 0;
+      resetPositions();
+      updateTurnDisplay();
+      currentState = GAME_STATES.WAITING_FOR_SHOT;
+      updateTacticsUI(); // Desabilita os seletores de tática ao iniciar a bola em jogo
+      playSound('whistle');
+      startTimer();
+    }
+  </script>
+</body>
+</html>
