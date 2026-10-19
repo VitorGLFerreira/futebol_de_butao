@@ -1251,8 +1251,8 @@
           return;
         }
 
-        // Se passar mais de 3.5 segundos (210 frames) em movimento ou se tudo parou, força a troca de turno para destravar
-        if (isEverythingStopped() || motionTimer > 210) {
+        // Se passar mais de 3 segundos em movimento ou se tudo parou, força a troca de turno para destravar totalmente
+        if (isEverythingStopped() || motionTimer > 180) {
           motionTimer = 0;
           stopAllMotion();
           switchTurn();
@@ -1432,8 +1432,16 @@
     function switchTurn() {
       currentTurnTeam = (currentTurnTeam === 'home') ? 'away' : 'home';
       touchesInCurrentTurn = 0;
-      currentState = GAME_STATES.WAITING_FOR_SHOT;
+      
+      // Limpa totalmente qualquer seleção ou arraste residual que possa travar a jogada
       selectedPlayerId = null;
+      dragStart = null;
+      dragCurrent = null;
+      
+      // Garante que todas as peças estejam 100% paradas para liberar o clique
+      stopAllMotion();
+      
+      currentState = GAME_STATES.WAITING_FOR_SHOT;
       updateTurnDisplay();
 
       if (gameMode === 'pve' && currentTurnTeam === 'away') {
@@ -1451,7 +1459,6 @@
       const selectHome = document.getElementById('select-tactics-home');
       const selectAway = document.getElementById('select-tactics-away');
       
-      // Só permite trocar tática no MENU, no GOAL_CELEBRATION ou quando o tempo acabou
       const canChangeTactics = (
         currentState === GAME_STATES.MENU || 
         currentState === GAME_STATES.GOAL_CELEBRATION ||
@@ -1467,7 +1474,6 @@
       
       currentState = GAME_STATES.AI_THINKING;
       setTimeout(() => {
-        // Garante que o jogo não trocou de estado durante o timeout
         if (currentState !== GAME_STATES.AI_THINKING) return;
 
         const aiPlayers = players.filter(p => p.team === 'away' && !p.isGK);
@@ -1501,7 +1507,7 @@
         bestPlayer.vx = Math.cos(angle) * impulse;
         bestPlayer.vy = Math.sin(angle) * impulse;
 
-        timerStarted = true; // Inicia o tempo no primeiro movimento da IA
+        timerStarted = true;
         playSound('kick');
         currentState = GAME_STATES.BALL_IN_MOTION;
       }, 600);
@@ -1522,13 +1528,21 @@
     }
 
     function handlePointerDown(evt) {
-      if (currentState !== GAME_STATES.WAITING_FOR_SHOT) return;
+      // Se por algum motivo o estado estiver preso ou houver velocidade residual, força o estado correto se todas as peças estiverem praticamente paradas
+      if (currentState !== GAME_STATES.WAITING_FOR_SHOT) {
+        if (isEverythingStopped()) {
+          currentState = GAME_STATES.WAITING_FOR_SHOT;
+        } else {
+          return;
+        }
+      }
 
       const coords = getCanvasCoords(evt);
+      // Maior tolerância para clique/toque (radius + 12px) facilitando a seleção em telas menores
       const clickedPlayer = players.find(p => {
         if (p.team !== currentTurnTeam) return false;
         const dist = Math.hypot(coords.x - p.x, coords.y - p.y);
-        return dist <= p.radius + 5;
+        return dist <= p.radius + 12;
       });
 
       if (clickedPlayer) {
@@ -1561,7 +1575,7 @@
           player.vx = Math.cos(angle) * impulse;
           player.vy = Math.sin(angle) * impulse;
 
-          timerStarted = true; // Inicia o tempo no primeiro chute do jogador
+          timerStarted = true;
           playSound('kick');
           currentState = GAME_STATES.BALL_IN_MOTION;
         }
